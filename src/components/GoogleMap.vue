@@ -1,46 +1,37 @@
 <template>
-  <div>
-    <div class="row justify-content-md-center">
-        
-      
-      <div class="col-md-4">
-        <h2>Search and add a pin</h2>
-      <label>
-        <gmap-autocomplete
-          @place_changed="setPlace1">
-        </gmap-autocomplete>
-        
-        <h1 v-if="address1">{{address1.geometry.location.lat()}}</h1>
-        <h1 v-if="address1">{{address1.geometry.location.lng()}}</h1>
-      </label>
-      
-      <label>
-        <gmap-autocomplete
-          @place_changed="setPlace2">
-        </gmap-autocomplete>
-        
-        <h1 v-if="address2">{{address2.geometry.location.lat()}}</h1>
-        <h1 v-if="address2">{{address2.geometry.location.lng()}}</h1>
-      </label>
-      <button @click="addMarker">Search for Restaurants</button>
+  <div class="ui grid">
+    <div class="six wide column">
+      <div class="ui segment">
+        <h2>Enter Two Addresses to find Restaurants in the middle!</h2>
+        <div class="field">
+          <div class="ui right input large">
+            <gmap-autocomplete @place_changed="setPlace1"> </gmap-autocomplete>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="ui right input large">
+            <gmap-autocomplete @place_changed="setPlace2"> </gmap-autocomplete>
+          </div>
+        </div>
+
+        <div class="field">
+          <i class="dot circle link icon" @click="addMarker"
+            >Search for Restaurants</i
+          >
+        </div>
+      </div>
     </div>
-    
-    <div class="col-md-8">
-    <br>
-    <gmap-map
-      :center="center"
-      :zoom="12"
-      style="width:100%;  height: 800px;"
-    >
-      <gmap-marker
-        :key="index"
-        v-for="(m, index) in markers"
-        :position="m.position"
-        @click="center=m.position"
-      ></gmap-marker>
-    </gmap-map>
+    <div class="ten wide column segment ui">
+      <gmap-map :center="center" :zoom="12" style="width:100%;  height: 700px;">
+        <gmap-marker
+          :key="index"
+          v-for="(m, index) in markers"
+          :position="m.position"
+          @click="center = m.position"
+        ></gmap-marker>
+      </gmap-map>
     </div>
-  </div>
   </div>
 </template>
 
@@ -54,10 +45,12 @@ export default {
       center: { lat: 45.508, lng: -73.587 },
       markers: [],
       places: [],
+      radius: null,
       currentPlace: null,
       address1: null,
       address2: null,
-      middleGround: null
+      middleGroundLat: null,
+      middleGroundLng: null
     };
   },
 
@@ -69,11 +62,6 @@ export default {
     // receives a place object via the autocomplete component
     setPlace1(place) {
       this.address1 = place;
-    },
-    setPlace2(place) {
-      this.address2 = place;
-    },
-    addMarker() {
       if (this.address1) {
         const marker = {
           lat: this.address1.geometry.location.lat(),
@@ -81,9 +69,10 @@ export default {
         };
         this.markers.push({ position: marker });
         this.places.push(this.address1);
-        
-        
       }
+    },
+    setPlace2(place) {
+      this.address2 = place;
       if (this.address2) {
         const marker = {
           lat: this.address2.geometry.location.lat(),
@@ -91,18 +80,43 @@ export default {
         };
         this.markers.push({ position: marker });
         this.places.push(this.address2);
-        
-        
       }
+    },
+    addMarker() {
+      this.middleGroundLat =
+        (this.address1.geometry.location.lat() +
+          this.address2.geometry.location.lat()) /
+        2;
+      this.middleGroundLng =
+        (this.address1.geometry.location.lng() +
+          this.address2.geometry.location.lng()) /
+        2;
+      this.coordinates();
+      const URL = `https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${this.middleGroundLat},${this.middleGroundLng}&radius=1000&key=${process.env.VUE_APP_GOOGLE_MAPS_API_KEY}`;
 
-    const marker = {
-        lat: (this.address1.geometry.location.lat() + this.address2.geometry.location.lat()) / 2,
-        lng: (this.address1.geometry.location.lng() + this.address2.geometry.location.lng() ) / 2
-    }
-    this.markers.push({ position: marker });
-    this.center = marker;
-      
+      this.axios
+        .get(URL)
+        .then(response => {
+          this.places = response.data.results;
+          this.addLocationsToGoogleMaps();
+        })
+        .catch(error => {
+          console.log(error.message);
+        });
+    },
 
+    addLocationsToGoogleMaps() {
+      this.places.forEach(place => {
+        const marker = {
+          lat: place.geometry.location.lat,
+          lng: place.geometry.location.lng
+        };
+        this.markers.push({ position: marker });
+        this.places.push(this.place);
+      });
+    },
+    coordinates() {
+      return `${this.middleGroundLat}, ${this.middleGroundLng}`;
     },
     geolocate: function() {
       navigator.geolocation.getCurrentPosition(position => {
