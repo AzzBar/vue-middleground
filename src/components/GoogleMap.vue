@@ -1,26 +1,60 @@
 <template>
   <div class="ui grid">
     <div class="six wide column">
-      <div class="ui segment">
+      <form class="ui segment large form">
         <h2>Enter Two Addresses to find Restaurants in the middle!</h2>
-        <div class="field">
-          <div class="ui right input large">
-            <gmap-autocomplete @place_changed="setPlace1"> </gmap-autocomplete>
+        <div class="ui segment">
+          <div class="field">
+            <div class="ui right input large">
+              <gmap-autocomplete
+                placeholder="Enter The First Address"
+                @place_changed="setPlace1"
+              >
+              </gmap-autocomplete>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="ui right input large">
+              <gmap-autocomplete
+                placeholder="Enter The Second Address"
+                @place_changed="setPlace2"
+              >
+              </gmap-autocomplete>
+            </div>
+          </div>
+          <div class="field">
+            <div class="two fields">
+              <div class="field">
+                <span>Select type of search</span>
+                <select v-model="type">
+                  <option value="restaurant">Restaurant</option>
+                </select>
+              </div>
+              <div class="field">
+                <span>Select radius of search from MiddleGround</span>
+                <select v-model="radius">
+                  <option value="1">1 KM</option>
+                  <option value="5">5 KM</option>
+                  <option value="10">10 KM</option>
+                  <option value="15">15 KM</option>
+                  <option value="20">20 KM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <div
+              class="ui right animated fade button"
+              tabindex="0"
+              @click="addMarker"
+            >
+              <div class="visible content">Search for Restaurants!</div>
+              <div class="hidden content">HERE WE GO!!!!</div>
+            </div>
           </div>
         </div>
-
-        <div class="field">
-          <div class="ui right input large">
-            <gmap-autocomplete @place_changed="setPlace2"> </gmap-autocomplete>
-          </div>
-        </div>
-
-        <div class="field">
-          <i class="dot circle link icon" @click="addMarker"
-            >Search for Restaurants</i
-          >
-        </div>
-      </div>
+      </form>
     </div>
     <div class="ten wide column segment ui">
       <gmap-map :center="center" :zoom="12" style="width:100%;  height: 700px;">
@@ -46,6 +80,7 @@ export default {
       markers: [],
       places: [],
       radius: null,
+      type: "",
       currentPlace: null,
       address1: null,
       address2: null,
@@ -82,17 +117,18 @@ export default {
         this.places.push(this.address2);
       }
     },
+    computed: {
+      coordinates() {
+        return `${this.middleGroundLat}, ${this.middleGroundLng}`;
+      }
+    },
+
     addMarker() {
-      this.middleGroundLat =
-        (this.address1.geometry.location.lat() +
-          this.address2.geometry.location.lat()) /
-        2;
-      this.middleGroundLng =
-        (this.address1.geometry.location.lng() +
-          this.address2.geometry.location.lng()) /
-        2;
       this.coordinates();
-      const URL = `https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${this.middleGroundLat},${this.middleGroundLng}&radius=1000&key=${process.env.VUE_APP_GOOGLE_MAPS_API_KEY}`;
+      const URL = `https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${
+        this.middleGroundLat
+      },${this.middleGroundLng}&type=${this.type}&radius=${this.radius *
+        1000}&key=${process.env.VUE_APP_GOOGLE_MAPS_API_KEY}`;
 
       this.axios
         .get(URL)
@@ -116,6 +152,14 @@ export default {
       });
     },
     coordinates() {
+      this.middleGroundLat =
+        (this.address1.geometry.location.lat() +
+          this.address2.geometry.location.lat()) /
+        2;
+      this.middleGroundLng =
+        (this.address1.geometry.location.lng() +
+          this.address2.geometry.location.lng()) /
+        2;
       return `${this.middleGroundLat}, ${this.middleGroundLng}`;
     },
     geolocate: function() {
