@@ -1,5 +1,5 @@
 <template>
-  <div class="ui grid">
+  <div class="ui stackable grid">
     <div class="six wide column">
       <form class="ui segment large form">
         <h2>Enter Two Addresses to find Restaurants in the middle!</h2>
@@ -74,6 +74,7 @@
           :position="m.position"
           @click="center = m.position"
         ></gmap-marker>
+        
       </gmap-map>
     </div>
   </div>
