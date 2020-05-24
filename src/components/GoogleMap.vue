@@ -55,6 +55,16 @@
           </div>
         </div>
       </form>
+      <div class="ui segment"  style="max-height:500px;overflow:scroll">
+    <div class="ui divided items">
+        <div class="item" v-for="place in finds" :key="place.id">
+            <div class="content">
+                <div class="header">{{place.name}}</div>
+                <div class="meta">{{place.vicinity}}</div>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
     <div class="ten wide column segment ui">
       <gmap-map :center="center" :zoom="12" style="width:100%;  height: 700px;">
@@ -78,7 +88,9 @@ export default {
       // change this to whatever makes sense
       center: { lat: 45.508, lng: -73.587 },
       markers: [],
+      spots: [],
       places: [],
+      finds:[],
       radius: null,
       type: "",
       currentPlace: null,
@@ -117,11 +129,7 @@ export default {
         this.places.push(this.address2);
       }
     },
-    computed: {
-      coordinates() {
-        return `${this.middleGroundLat}, ${this.middleGroundLng}`;
-      }
-    },
+    
 
     addMarker() {
       this.coordinates();
@@ -133,7 +141,7 @@ export default {
       this.axios
         .get(URL)
         .then(response => {
-          this.places = response.data.results;
+          this.finds = response.data.results;
           this.addLocationsToGoogleMaps();
         })
         .catch(error => {
@@ -142,13 +150,14 @@ export default {
     },
 
     addLocationsToGoogleMaps() {
-      this.places.forEach(place => {
+      
+      this.finds.forEach(place => {
         const marker = {
           lat: place.geometry.location.lat,
           lng: place.geometry.location.lng
         };
         this.markers.push({ position: marker });
-        this.places.push(this.place);
+        
       });
     },
     coordinates() {
