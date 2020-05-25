@@ -7,6 +7,7 @@
           <div class="field">
             <div class="ui right input large">
               <gmap-autocomplete
+                ref="addy1"
                 placeholder="Enter The First Address"
                 @place_changed="setPlace1"
               >
@@ -17,6 +18,7 @@
           <div class="field">
             <div class="ui right input large">
               <gmap-autocomplete
+                ref="addy2"
                 placeholder="Enter The Second Address"
                 @place_changed="setPlace2"
               >
@@ -53,18 +55,28 @@
               <div class="hidden content">HERE WE GO!!!!</div>
             </div>
           </div>
+          <div class="field">
+            <div
+              class="ui right animated fade button"
+              tabindex="0"
+              @click="resetMap"
+            >
+              <div class="visible content">Search again</div>
+              <div class="hidden content">Reset this thang!</div>
+            </div>
+          </div>
         </div>
       </form>
-      <div class="ui segment"  style="max-height:500px;overflow:scroll">
-    <div class="ui divided items">
-        <div class="item" v-for="place in finds" :key="place.id">
+      <div class="ui segment" style="max-height:500px;overflow:scroll">
+        <div class="ui divided items">
+          <div class="item" v-for="place in finds" :key="place.id">
             <div class="content">
-                <div class="header">{{place.name}}</div>
-                <div class="meta">{{place.vicinity}}</div>
+              <div class="header">{{ place.name }}</div>
+              <div class="meta">{{ place.vicinity }}</div>
             </div>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
     </div>
     <div class="ten wide column segment ui">
       <gmap-map :center="center" :zoom="12" style="width:100%;  height: 700px;">
@@ -72,9 +84,22 @@
           :key="index"
           v-for="(m, index) in markers"
           :position="m.position"
-          @click="center = m.position"
-        ></gmap-marker>
-        
+          :clickable="true"
+          @click="openWindow(m.position)"
+        />
+        <gmap-info-window
+          @closeclick="window_open = false"
+          :opened="window_open"
+          :position="infoWindow"
+          :options="{
+            pixelOffset: {
+              width: 0,
+              height: -35
+            }
+          }"
+        >
+          <p>{{ checkIt }}</p>
+        </gmap-info-window>
       </gmap-map>
     </div>
   </div>
@@ -91,14 +116,19 @@ export default {
       markers: [],
       spots: [],
       places: [],
-      finds:[],
+      finds: [],
       radius: null,
       type: "",
       currentPlace: null,
+      addy: "",
       address1: null,
       address2: null,
       middleGroundLat: null,
-      middleGroundLng: null
+      middleGroundLng: null,
+      info_marker: null,
+      infoWindow: { lat: 28, lng: -80 },
+      window_open: false,
+      checkIt: "heshtfdhf"
     };
   },
 
@@ -130,7 +160,6 @@ export default {
         this.places.push(this.address2);
       }
     },
-    
 
     addMarker() {
       this.coordinates();
@@ -150,15 +179,28 @@ export default {
         });
     },
 
+    openWindow(item) {
+      console.log(this);
+      this.infoWindow = item;
+      this.window_open = true;
+    },
+
+    resetMap() {
+      this.markers = [];
+      this.spots = [];
+      this.places = [];
+      this.finds = [];
+      this.$refs.addy1.$el.value = "";
+      this.$refs.addy2.$el.value = "";
+    },
+
     addLocationsToGoogleMaps() {
-      
       this.finds.forEach(place => {
         const marker = {
           lat: place.geometry.location.lat,
           lng: place.geometry.location.lng
         };
         this.markers.push({ position: marker });
-        
       });
     },
     coordinates() {
