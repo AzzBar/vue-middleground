@@ -79,13 +79,13 @@
       </div>
     </div>
     <div class="ten wide column segment ui">
-      <gmap-map :center="center" :zoom="12" style="width:100%;  height: 700px;">
+      <gmap-map :center="center" :zoom="12" :options="{gestureHandling: 'greedy'}" style="width:100%;  height: 700px;">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
           :position="m.position"
           :clickable="true"
-          @click="openWindow(m.position)"
+          @click="openWindow(m)"
         />
         <gmap-info-window
           @closeclick="window_open = false"
@@ -98,7 +98,10 @@
             }
           }"
         >
-          <p>{{ checkIt }}</p>
+          <div class="content">
+              <div class="header">{{ checkIt.name }}</div>
+              <div class="meta">{{ checkIt.vicinity }}</div>
+            </div>
         </gmap-info-window>
       </gmap-map>
     </div>
@@ -181,10 +184,12 @@ export default {
 
     openWindow(item) {
       console.log(this);
-      this.infoWindow = item;
+      this.checkIt = item;
+      this.infoWindow = item.position;
       this.window_open = true;
     },
 
+//resets all arrays and input fields to try another entry
     resetMap() {
       this.markers = [];
       this.spots = [];
@@ -200,7 +205,10 @@ export default {
           lat: place.geometry.location.lat,
           lng: place.geometry.location.lng
         };
-        this.markers.push({ position: marker });
+        this.markers.push({ position: marker,
+        vicinity: place.vicinity,
+        name: place.name
+         });
       });
     },
     coordinates() {
