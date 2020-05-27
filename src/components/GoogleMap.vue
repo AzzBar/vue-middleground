@@ -79,7 +79,7 @@
       </div>
     </div>
     <div class="ten wide column segment ui">
-      <gmap-map :center="center" :zoom="12" :options="{gestureHandling: 'greedy'}" style="width:100%;  height: 700px;">
+      <gmap-map :center="center" :zoom="12" :options="{gestureHandling: 'cooperative'}" style="width:100%;  height: 700px;">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
