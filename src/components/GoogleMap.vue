@@ -34,7 +34,7 @@
                 </select>
               </div>
               <div class="field">
-                <span>Select radius of search from MiddleGround</span>
+                <span>Radius of search from MiddleGround</span>
                 <select v-model="radius">
                   <option value="1">1 KM</option>
                   <option value="5">5 KM</option>
